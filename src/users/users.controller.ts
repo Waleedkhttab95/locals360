@@ -30,14 +30,14 @@ export class UsersController {
     return this.usersService.update(req.user.id, updateUserDto);
   }
 
-  @Post('upload')
-  @ApiBearerAuth('access-token')
-  @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor('file'))
-  uploadFile(@Request() req:any , @UploadedFile() file: Express.Multer.File) {
+  // @Post('upload')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(AuthGuard('jwt'))
+  // @UseInterceptors(FileInterceptor('file'))
+  // uploadFile(@Request() req:any , @UploadedFile() file: Express.Multer.File) {
 
-    return this.usersService.updateProfileImage(req.user.id,file);
-  }
+  //   return this.usersService.updateProfileImage(req.user.id,file);
+  // }
 
 
 }

@@ -20,6 +20,7 @@ import { TransactionModule } from 'src/transaction/transaction.module';
     ]),
     UsersModule,
     GuideModule,
+    ExperienceModule,
     TransactionModule
   ],
   controllers: [ReservationController],

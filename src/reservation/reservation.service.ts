@@ -11,6 +11,7 @@ import { Location } from '../location/entities/location.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TransactionService } from 'src/transaction/transaction.service';
+import { Slots } from 'src/experience/entities/slots.entity';
 
 @Injectable()
 export class ReservationService {
@@ -23,6 +24,8 @@ export class ReservationService {
     private readonly userRepository: Model<User>,
     @InjectModel(Experience.name)
     private readonly experienceRepository: Model<Experience>,
+    @InjectModel(Slots.name)
+    private readonly slotsRepository: Model<Slots>,
     private transactonService : TransactionService
   ) {}
 
@@ -114,5 +117,45 @@ export class ReservationService {
 
   remove(id: number) {
     return `This action removes a #${id} reservation`;
+  }
+
+ async getReservationsWithDate(experienceId:string ,date:Date ){
+    return await this.reservationRepository
+    .find({
+      experience: experienceId,
+      dateOfExperience: date,
+    })
+    .countDocuments()
+  }
+
+
+
+  async checkDateAvailability(
+    dateParam: string,
+    experienceId: string,
+    requestedQty: number,
+  ) {
+    const date = new Date(dateParam);
+    const resultDate = date;
+
+    const experienceSlots = await this.slotsRepository.find({
+      experience: experienceId,
+    });
+
+    let slot = experienceSlots.find((slotObj) => slotObj.day >= date.getDay());
+    if (slot) {
+      let days = slot.day - date.getDay(); // this for check what is the current full date , and what is the nearst day
+      resultDate.setDate(resultDate.getDate() + days);
+    } else {
+      slot = experienceSlots[0]; //get the first day in experience calendar
+
+      let days = date.getDay() - slot.day; // this for check what is the current full date , and what is the nearst day
+      resultDate.setDate(resultDate.getDate() + days);
+    }
+
+    // check the counts of reservation at this date
+    const reservationsCount = await this.getReservationsWithDate(experienceId , resultDate);
+
+    return reservationsCount + requestedQty <= slot.qty ? true : false;
   }
 }

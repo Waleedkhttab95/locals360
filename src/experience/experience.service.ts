@@ -19,6 +19,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { orderByDistance } from 'geolib';
 import { LocationService } from 'src/location/location.service';
+import { ReservationService } from 'src/reservation/reservation.service';
 
 @Injectable()
 export class ExperienceService {
@@ -27,17 +28,8 @@ export class ExperienceService {
     private readonly experienceRepository: Model<Experience>,
     @InjectModel(Slots.name)
     private readonly slotsRepository: Model<Slots>,
-    @InjectModel(Reservation.name)
-    private readonly reservationRepository: Model<Reservation>,
     private locationService: LocationService
   ) {}
-
-  // S3 config
-  AWS_S3_BUCKET = process.env.AWS_S3_BUCKET_NAME;
-  s3 = new AWS.S3({
-    accessKeyId: process.env.S3_ACCESS_KEY,
-    secretAccessKey: process.env.S3_SECRET_KEY,
-  });
 
   async create(createExperienceDto: CreateExperienceDto) {
     const experience = await this.experienceRepository.create({
@@ -85,38 +77,6 @@ export class ExperienceService {
   }
 
 
-
-  async uploadFile(file: Express.Multer.File) {
-    const { originalname } = file;
-
-    return await this.s3_upload(
-      file.buffer,
-      this.AWS_S3_BUCKET,
-      originalname,
-      file.mimetype,
-    );
-  }
-
-  async s3_upload(file, bucket, name, mimetype) {
-    const params = {
-      Bucket: bucket,
-      Key: `${uuid()}-${String(name)}`,
-      Body: file,
-      ACL: 'public-read',
-      ContentType: mimetype,
-      ContentDisposition: 'inline',
-      CreateBucketConfiguration: {
-        LocationConstraint: process.env.S3_LOCATION_CONSTRAINT,
-      },
-    };
-
-    try {
-      let s3Response = await this.s3.upload(params).promise();
-      return s3Response;
-    } catch (e) {
-      console.log(e);
-    }
-  }
 
   async findAll() {
     const experiences = await this.experienceRepository
@@ -190,39 +150,6 @@ export class ExperienceService {
     return experience;
   }
 
-  async checkDateAvailability(
-    dateParam: string,
-    experienceId: string,
-    requestedQty: number,
-  ) {
-    const date = new Date(dateParam);
-    const resultDate = date;
-
-    const experienceSlots = await this.slotsRepository.find({
-      experience: experienceId,
-    });
-
-    let slot = experienceSlots.find((slotObj) => slotObj.day >= date.getDay());
-    if (slot) {
-      let days = slot.day - date.getDay(); // this for check what is the current full date , and what is the nearst day
-      resultDate.setDate(resultDate.getDate() + days);
-    } else {
-      slot = experienceSlots[0]; //get the first day in experience calendar
-
-      let days = date.getDay() - slot.day; // this for check what is the current full date , and what is the nearst day
-      resultDate.setDate(resultDate.getDate() + days);
-    }
-
-    // check the counts of reservation at this date
-    const reservationsCount = await this.reservationRepository
-      .find({
-        experience: experienceId,
-        dateOfExperience: resultDate,
-      })
-      .countDocuments();
-
-    return reservationsCount + requestedQty <= slot.qty ? true : false;
-  }
 
 
   async getExperienceByCity(cityId: string) {

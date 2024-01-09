@@ -19,7 +19,6 @@ import { LocationModule } from 'src/location/location.module';
       { name: Slots.name, schema: SlotsSchema },
     ]),
     GuideModule,
-    ReservationModule,
     UsersModule,
     LocationModule,
     MulterModule.register({

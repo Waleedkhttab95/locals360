@@ -104,18 +104,18 @@ export class UsersService {
     return result.id;
   }
 
-  async updateProfileImage(id: string, file: Express.Multer.File) {
-    const user = await this.userRepository.findById(id);
+  // async updateProfileImage(id: string, file: Express.Multer.File) {
+  //   const user = await this.userRepository.findById(id);
 
-    if (!user) {
-      throw new Error('User not found');
-    }
-    const imgURL = await this.utilitiesService.uploadFile(file);
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+  //   const imgURL = await this.utilitiesService.uploadFile(file);
 
-    user.profileImg = imgURL.Location;
-    await user.save();
-    return user;
-  }
+  //   user.profileImg = imgURL.Location;
+  //   await user.save();
+  //   return user;
+  // }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findById(id);
