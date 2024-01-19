@@ -17,5 +17,7 @@ jobs:
       run: sudo docker pull locals360/backend:latest
     - name: Delete Old docker container
       run: sudo docker rm -f root-backend-server-1 || true
+    - name: Delete Old docker image
+      run: sudo docker rmi -f root-backend-server-1 locals360/backend:latest
     - name: Run Docker Container
       run: sudo docker-compose up -d --no-deps --build backend-server
