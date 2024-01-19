@@ -21,8 +21,18 @@ export class AuthController {
 
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req) {
-    return this.authService.googleLogin(req);
+  async googleAuthRedirect(@Req() req) {
+    let user = await this.authService.googleLogin(req);
+
+    const payload: TokenPayloadDto = {
+      email: req.email,
+      id: req._id,
+    };
+
+    const token = await this.authService.signPayload(payload);
+    user['token'] = token;
+
+    return user;
   }
 
   @Serialize(UserResDto)

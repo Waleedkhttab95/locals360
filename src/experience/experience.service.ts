@@ -1,5 +1,4 @@
 import {
-  ConsoleLogger,
   Injectable,
   UnauthorizedException,
   NotFoundException,
@@ -7,19 +6,11 @@ import {
 import { CreateExperienceDto } from './dto/create-experience.dto';
 import { UpdateExperienceDto } from './dto/update-experience.dto';
 import { Experience } from './entities/experience.entity';
-import { CreateLocationDto } from '../location/dto/create-locaton.dto';
-import * as AWS from 'aws-sdk';
-import { v4 as uuid } from 'uuid';
 import { Slots } from './entities/slots.entity';
-import { Guide } from 'src/guide/entities/guide.entity';
-import { Location } from '../location/entities/location.entity';
-import { Reservation } from 'src/reservation/entities/reservation.entity';
-import { City } from '../city/entities/city.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { orderByDistance } from 'geolib';
 import { LocationService } from 'src/location/location.service';
-import { ReservationService } from 'src/reservation/reservation.service';
 
 @Injectable()
 export class ExperienceService {
@@ -106,7 +97,8 @@ export class ExperienceService {
   }
 
   async findOne(id: string) {
-    const experience = await this.experienceRepository.findById(id);
+    const experience = await this.experienceRepository.findById(id)
+    .populate('items slots location');
 
     if (!experience) throw new NotFoundException('Not found any experience :(');
 

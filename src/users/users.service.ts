@@ -44,7 +44,6 @@ export class UsersService {
     );
     createUserDto.password = hashedPassword;
 
-
     const user = await this.userRepository.create({
       isActive: true,
       ...createUserDto,
@@ -53,8 +52,7 @@ export class UsersService {
 
     // create a new empty wishlist
 
-    await this.createWishlist(user._id)
-
+    await this.createWishlist(user._id);
 
     return user;
   }
@@ -76,10 +74,10 @@ export class UsersService {
     const { email, password } = authDto;
     email.toLowerCase();
     const user = await this.userRepository.findOne({
-      email: authDto.email,
+      email: email,
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
     if (user.isActive === false) {
@@ -167,33 +165,36 @@ export class UsersService {
     return existUser;
   }
 
-  async createWishlist(userId: ObjectId){
+  async createWishlist(userId: ObjectId) {
     const wishlist = await this.wishlistRepository.create({
-      user: userId , 
-      experienceList: []
-    })
-    await wishlist.save()
+      user: userId,
+      experienceList: [],
+    });
+    await wishlist.save();
   }
-  async addToWishlist(experienceId: string , userId: string){
-    const wishlist = await this.wishlistRepository.findOneAndUpdate({user: userId} , {
-      $push: {experienceList: experienceId}
-    })
+  async addToWishlist(experienceId: string, userId: string) {
+    const wishlist = await this.wishlistRepository.findOneAndUpdate(
+      { user: userId },
+      {
+        $push: { experienceList: experienceId },
+      },
+    );
 
-    if(!wishlist) throw new NotFoundException('Wishlist not found ')
+    if (!wishlist) throw new NotFoundException('Wishlist not found ');
 
-    return true
-    
-    }
+    return true;
+  }
 
-    async getUserWishlist(userId: string){
-      const wishlist = await this.wishlistRepository.findOne({user: userId})
+  async getUserWishlist(userId: string) {
+    const wishlist = await this.wishlistRepository
+      .findOne({ user: userId })
       .populate({
-        path: 'experienceList' , 
-        select: '_id title'
+        path: 'experienceList',
+        select: '_id title',
       });
 
-      if(!wishlist) throw new NotFoundException('Wishlist not found ')
+    if (!wishlist) throw new NotFoundException('Wishlist not found ');
 
-      return wishlist
-    }
+    return wishlist;
+  }
 }

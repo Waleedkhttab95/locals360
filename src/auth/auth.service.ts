@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuthDto } from './auth.dto';
 import { sign } from 'jsonwebtoken';
 import { UsersService } from 'src/users/users.service';
@@ -15,10 +15,7 @@ export class AuthService {
   ) {}
   async googleLogin(req) {
     if (!req.user) {
-      return {
-        message: 'Invalid sign-in',
-        errCode: 0,
-      };
+      throw new NotFoundException() ;
     } else {
       const { email, firstName, lastName } = req.user;
 
@@ -35,16 +32,16 @@ export class AuthService {
         });
 
         return {
-          message: 'Successful sign-in',
+          message: 'Created and Successful sign-in',
           user: user,
-          errCode: 2,
+          errCode: 0,
         };
       }
 
       return {
         message: 'Successful sign-in',
         user: req.user,
-        errCode: 1,
+        errCode: 0,
       };
     }
   }

@@ -1,13 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Reservation, ReservationStatus } from './entities/reservation.entity';
-import { MongoRepository, MoreThanOrEqual } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Guide } from 'src/guide/entities/guide.entity';
 import { Experience } from 'src/experience/entities/experience.entity';
-import { Location } from '../location/entities/location.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TransactionService } from 'src/transaction/transaction.service';
@@ -52,10 +49,11 @@ export class ReservationService {
       qty: createReservationDto.qty,
     });
 
+    const dateOfExperience = new Date(createReservationDto.dateOfExperience)
 
     const reservation = await this.reservationRepository.create({
       qty: createReservationDto.qty,
-      dateOfExperience: createReservationDto.dateOfExperience,
+      dateOfExperience: dateOfExperience.setHours(0,0,0,0) ,
       transaction: transaction._id,
       price: transaction.totalWithTax,
       location: createReservationDto.location,
@@ -120,12 +118,20 @@ export class ReservationService {
   }
 
  async getReservationsWithDate(experienceId:string ,date:Date ){
-    return await this.reservationRepository
+    console.log(date)
+    const reservations = await this.reservationRepository
     .find({
       experience: experienceId,
       dateOfExperience: date,
     })
-    .countDocuments()
+
+    const initialValue = 0;
+    const sumWithInitial = reservations.reduce(
+      (accumulator, currentValue) => accumulator + Number(currentValue.qty),
+      initialValue,
+    );
+
+    return sumWithInitial
   }
 
 
@@ -135,27 +141,32 @@ export class ReservationService {
     experienceId: string,
     requestedQty: number,
   ) {
+    
+    
     const date = new Date(dateParam);
+
     const resultDate = date;
 
     const experienceSlots = await this.slotsRepository.find({
       experience: experienceId,
     });
 
-    let slot = experienceSlots.find((slotObj) => slotObj.day >= date.getDay());
+    let slot = experienceSlots.find((slotObj) => slotObj.day == date.getDay());
+
     if (slot) {
       let days = slot.day - date.getDay(); // this for check what is the current full date , and what is the nearst day
       resultDate.setDate(resultDate.getDate() + days);
     } else {
-      slot = experienceSlots[0]; //get the first day in experience calendar
+      // slot = experienceSlots[0]; //get the first day in experience calendar
 
-      let days = date.getDay() - slot.day; // this for check what is the current full date , and what is the nearst day
-      resultDate.setDate(resultDate.getDate() + days);
+      // let days = date.getDay() - slot.day; // this for check what is the current full date , and what is the nearst day
+      // resultDate.setDate(resultDate.getDate() + days);
+      return false
     }
 
     // check the counts of reservation at this date
     const reservationsCount = await this.getReservationsWithDate(experienceId , resultDate);
 
-    return reservationsCount + requestedQty <= slot.qty ? true : false;
+    return (reservationsCount + Number(requestedQty)) <= slot.qty ? true : false;
   }
 }
