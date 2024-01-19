@@ -1,0 +1,21 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - name: Pull Docker image
+      run: sudo docker pull locals360/backend:latest
+    - name: Delete Old docker container
+      run: sudo docker rm -f root-backend-server-1 || true
+    - name: Run Docker Container
+      run: sudo docker-compose up -d --no-deps --build backend-server
