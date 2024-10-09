@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CreateCityDto } from './dto/create-city.dto';
@@ -18,4 +18,9 @@ export class CityController {
     createCity(@Body() createCityDto: CreateCityDto) {
       return this.cityService.createCity(createCityDto);
     }
+
+    @Get()
+    findAll() {
+      return this.cityService.getAllCity();
+    } 
 }

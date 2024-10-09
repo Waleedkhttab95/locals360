@@ -26,22 +26,33 @@ export class RatingService {
     if (!experience) throw new NotFoundException('Not found experience ');
 
     const user = await this.userRepository.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
 
-    const review = await this.ratingRepository.create({
-      user: user,
-      ...createReviewParams,
-    });
+    // Validate the input data
+    if (!createReviewParams.body || !createReviewParams.stars) {
+      throw new Error('Invalid input data');
+    }
 
-    experience.reviews.push(review);
-    user.reviews.push(review);
-
-    await Promise.all([
-      await review.save(),
-      await user.save(),
-      await experience.save(),
-    ]);
-
-    return review;
+  
+    try {
+      const review = await this.ratingRepository.create({
+        user: user,
+        body: createReviewParams.body,
+        rating: createReviewParams.stars,
+        experience: experience._id,
+      });
+      experience.reviews.push(review);
+      user.reviews.push(review);
+      await Promise.all([
+        await review.save(),
+        await experience.save(),
+        await user.save(),
+      ]);
+      return review;
+    } catch (error) {
+      console.error('Error saving review:', error);
+      throw new Error('Failed to save review');
+    }
   }
 
   async getExperienceReviews(experienceId: string) {

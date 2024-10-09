@@ -11,8 +11,9 @@ export class RatingController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() createRatingDto: CreateRatingDto , @Request() req:any) {
-    return this.ratingService.create(createRatingDto , req.user._id);
+  async create(@Body() createRatingDto: CreateRatingDto , @Request() req:any) {
+
+    return await this.ratingService.create(createRatingDto , req.user.id);
   }
 
   @Get(':/experienceid')

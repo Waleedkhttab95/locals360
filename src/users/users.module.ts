@@ -7,7 +7,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UtilitiesModule } from 'src/utilities/utilities.module';
 import { UserToken, UserTokenSchema } from './entities/user.token.entity';
 import { Wishlist, WishlistSchema } from './entities/user.wishlist.entity';
-
 @Module({
   controllers: [UsersController],
   providers: [UsersService],

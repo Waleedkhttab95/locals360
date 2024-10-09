@@ -1,27 +1,29 @@
+import { Prop } from "@nestjs/mongoose";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
+import mongoose from "mongoose";
+import { Experience } from "src/experience/entities/experience.entity";
+import { Guide } from "src/guide/entities/guide.entity";
+import { User } from "src/users/entities/user.entity";
 
 export class CreateReservationDto {
 
     @ApiProperty()
     @IsString()
-    guideId: string;
-    @ApiProperty()
-    @IsString()
     dateOfExperience: string;
     @ApiProperty()
-    @IsString()
-    price: string;
+    @IsNumber()
+    price: number;
     @ApiProperty()
     @IsString()
     location: string;
     @ApiProperty()
-    @IsString()
+    @IsNumber()
     qty: number;
     @ApiProperty()
     @IsString()
     transaction: string;
     @ApiProperty()
     @IsString()
-    experience: string;
+    experience: string; //ref
 }

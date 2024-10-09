@@ -17,10 +17,12 @@ export class TransactionService {
     async create(createTransactionDto : CreateTransactiondto){
         const priceWithTax = this.utilitiesService.calculateTax(createTransactionDto.priceWithoutTax)
         const tax = this.utilitiesService.getPercentageOfTax()
+        const totalWithTax = priceWithTax * createTransactionDto.qty
 
+        console.log(priceWithTax, tax, totalWithTax)
         createTransactionDto['priceWithTax'] = priceWithTax
         createTransactionDto['tax'] = tax
-        createTransactionDto['totalWithTax'] = priceWithTax * createTransactionDto.qty
+        createTransactionDto['totalWithTax'] = totalWithTax
 
         const transaction = await this.transactionRepository.create(createTransactionDto)
 

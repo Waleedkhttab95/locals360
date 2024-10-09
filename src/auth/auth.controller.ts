@@ -59,10 +59,11 @@ export class AuthController {
   async login(@Body() authDto: AuthDto) {
     const user = await this.authService.validateUser(authDto);
     const payload: TokenPayloadDto = {
-      email: user.email,
+      email: user.email.toLowerCase(),
       id: user._id,
     };
 
+    console.log(payload);
     const token = await this.authService.signPayload(payload);
     user['token'] = token;
 

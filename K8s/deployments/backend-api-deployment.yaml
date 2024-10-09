@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myconfigmap
+  labels:
+    app: myapplication
+data:
+  # ... existing config data ...
+  # Avoid hardcoding sensitive information here
+  # Use Kubernetes Secrets instead for sensitive data
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: backend-api
+  template:
+    metadata:
+      labels:
+        name: backend-api
+    spec:
+      containers:
+      - image: locals360/backend
+        name: backend-api-server
+        envFrom:
+          - configMapRef:
+              name: myconfigmap
+        resources:  # Added resource requests and limits
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        readinessProbe:  # Added readiness probe
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:  # Added liveness probe
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+  strategy:  # Added update strategy
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1

@@ -40,6 +40,9 @@ export class Experience {
     @Prop( { type:mongoose.Schema.Types.ObjectId, ref: 'Location' })
     location: Location; //ref
 
+    @Prop({ type:mongoose.Schema.Types.ObjectId, ref: 'City' })
+    city: City; //ref
+
     @Prop([{ type:mongoose.Schema.Types.ObjectId, ref: 'Slots' }])
     slots: Slots[]; // 
 
@@ -58,6 +61,17 @@ export class Experience {
 
     @Prop([{  type:mongoose.Schema.Types.ObjectId, ref: 'Review' }])
     reviews: Rating[]
+
+    @Prop()
+    price: number;
+
+    @Prop()
+    priceWithoutTax: number;
+
+    @Prop()
+    tax: number;
+
+    
 }
 
 

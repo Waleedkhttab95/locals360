@@ -11,7 +11,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-
+  @Get()
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  getUserById(@Request() req:any) {
+    return this.usersService.getUserById(req.user.id);
+  }
 
   @Get('/reservations')
   @ApiBearerAuth('access-token')

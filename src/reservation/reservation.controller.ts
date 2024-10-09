@@ -13,11 +13,13 @@ export class ReservationController {
   @Post()
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
-  create(
+  async create(
     @Body() createReservationDto: CreateReservationDto,
     @Request() req: any,
   ) {
-    return this.reservationService.create(createReservationDto, req.user.id);
+    console.log("createReservationDto", createReservationDto);
+    const reservation = await this.reservationService.create(createReservationDto, req.user.id);
+    return { status: 200, message: 'Reservation created successfully', reservation };
   }
 
   @Get()
@@ -44,21 +46,24 @@ export class ReservationController {
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   getUpcomingReservations(@Request() req: any) {
-    return this.reservationService.up_comping(req.user.id);
+    return this.reservationService.up_compingForGuide(req.user.id);
   }
 
   @Get('/past_reservations')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   getPastReservations(@Request() req: any) {
-    return this.reservationService.past_reservations(req.user.id);
+    return this.reservationService.past_reservationsForGuide(req.user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reservationService.findOne(+id);
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  getReservationById(@Param('id') id: string , @Request() req:any) {
+    return this.reservationService.getReservationById(id , req.user.id);
   }
 
+  
   @Patch(':id')
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))

@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsObject, IsString,ArrayMinSize, isObject, ValidateNested } from "class-validator";
+import { IsArray, IsObject, IsString,ArrayMinSize, isObject, ValidateNested, IsNumber } from "class-validator";
 import { Slots } from "../entities/slots.entity";
 import { City } from "../../city/entities/city.entity";
 import { ApiProperty } from "@nestjs/swagger";
@@ -65,4 +65,14 @@ export class CreateExperienceDto {
     @ApiProperty()
     @IsString()
     city: City;
+
+    @ApiProperty()
+    @IsNumber()
+    price: number;
+
+    @ApiProperty()
+    @IsNumber()
+    priceWithoutTax: number;
+    
+
 }

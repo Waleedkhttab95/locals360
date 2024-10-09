@@ -21,6 +21,7 @@ import { CityModule } from './city/city.module';
 import { LocationModule } from './location/location.module';
 import { RatingModule } from './rating/rating.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { ExperienceCategoryModule } from './experience-category/experience-category.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { TransactionModule } from './transaction/transaction.module';
   CityModule,
   LocationModule,
   RatingModule,
-  TransactionModule
+  TransactionModule,
+  ExperienceCategoryModule
    ],
   controllers: [AppController],
   providers: [AppService, EmailService, NotificationService],

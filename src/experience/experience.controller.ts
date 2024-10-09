@@ -49,6 +49,12 @@ export class ExperienceController {
     return this.experienceService.getExperienceByCity(id);
   }
 
+  @Get('/experience_city_date/:id/:date/:qty')
+  findByCityAndDate(@Param('id') id: string, @Param('date') date: string, @Param('qty') qty: number) {
+    console.log(id, date, qty)
+    return this.experienceService.getExperienceBasedOnCityAndDate(id, date,qty);
+  }
+
   @Get('/experience_location/:long/:lat/:limit')
   findByLocation(
     @Param('long') long: string,

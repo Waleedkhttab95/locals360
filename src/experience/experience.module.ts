@@ -21,6 +21,7 @@ import { LocationModule } from 'src/location/location.module';
     GuideModule,
     UsersModule,
     LocationModule,
+    ReservationModule,
     MulterModule.register({
       dest: './uploads', // specify the destination directory for temporary storage
     }),

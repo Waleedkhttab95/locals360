@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { Slots } from 'src/experience/entities/slots.entity';
+import { ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class ReservationService {
@@ -31,13 +32,8 @@ export class ReservationService {
 
     if (!user) throw new NotFoundException('user Not found  !');
 
-    const guide = await this.guideRepository.findById(
-      createReservationDto.guideId,
-    );
 
-    if (!guide) throw new NotFoundException('Guide Not found  !');
-
-    const experience = await this.experienceRepository.findById(createReservationDto.experience);
+    const experience = await this.experienceRepository.findById(createReservationDto.experience).populate('guide');
 
     if(!experience) throw new NotFoundException('Experience not found')
 
@@ -59,15 +55,14 @@ export class ReservationService {
       location: createReservationDto.location,
       experience: createReservationDto.experience,
       status: ReservationStatus.RESERVED,
-      guide: guide,
+      guide: experience.guide,
       user: user,
     });
-
-    guide.reservations.push(reservation);
+    console.log(experience)
+    experience.guide.reservations.push(reservation);
     experience.reservations.push(reservation);
     user.reservations.push(reservation);
     await Promise.all([
-      await guide.save(),
       await experience.save(),
       await user.save(),
       await reservation.save(),
@@ -84,7 +79,7 @@ export class ReservationService {
     return `This action returns a #${id} reservation`;
   }
 
-  async up_comping(guideId: string) {
+  async up_compingForGuide(guideId: string) {
     const today = new Date();
     const upComingResrvations = await this.reservationRepository
       .find({
@@ -96,7 +91,7 @@ export class ReservationService {
     return upComingResrvations;
   }
 
-  async past_reservations(guideId: string) {
+  async past_reservationsForGuide(guideId: string) {
     const today = new Date();
 
     const pastReservations = await this.reservationRepository
@@ -118,7 +113,7 @@ export class ReservationService {
   }
 
  async getReservationsWithDate(experienceId:string ,date:Date ){
-    console.log(date)
+    
     const reservations = await this.reservationRepository
     .find({
       experience: experienceId,
@@ -133,8 +128,6 @@ export class ReservationService {
 
     return sumWithInitial
   }
-
-
 
   async checkDateAvailability(
     dateParam: string,
@@ -152,7 +145,7 @@ export class ReservationService {
     });
 
     let slot = experienceSlots.find((slotObj) => slotObj.day == date.getDay());
-
+    
     if (slot) {
       let days = slot.day - date.getDay(); // this for check what is the current full date , and what is the nearst day
       resultDate.setDate(resultDate.getDate() + days);
@@ -165,8 +158,28 @@ export class ReservationService {
     }
 
     // check the counts of reservation at this date
+    // should be return result from this function before return true or false
     const reservationsCount = await this.getReservationsWithDate(experienceId , resultDate);
 
+
     return (reservationsCount + Number(requestedQty)) <= slot.qty ? true : false;
+  }
+
+  async getReservationById(id: string , userId: string) {
+    const reservation = await this.reservationRepository.findById(id)
+    .populate({
+      path: 'experience',
+    })
+    .populate({
+      path: 'location',
+      populate: {
+        path: 'city',
+      },
+    });
+    if (!reservation) throw new NotFoundException('Reservation not found');
+    // CHECK IF THE RESERVATION BELONGS TO THE USER
+    if (reservation.user.toString() !== userId) throw new ForbiddenException('You are not authorized to access this reservation');
+    console.log(reservation)
+    return reservation;
   }
 }

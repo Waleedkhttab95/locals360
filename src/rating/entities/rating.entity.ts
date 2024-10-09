@@ -1,24 +1,25 @@
-import { Prop, SchemaFactory } from "@nestjs/mongoose";
+import { Prop, SchemaFactory , Schema} from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
 import { Experience } from "src/experience/entities/experience.entity";
 import { User } from "src/users/entities/user.entity";
 
 export type RatingDocument = HydratedDocument<Rating>;
 
+@Schema({
+    timestamps: true,
+  }) 
 export class Rating {
-    @Prop()
+    @Prop({ type:mongoose.Schema.Types.ObjectId, ref: 'User' , required: true})
+    user: User;
+
+    @Prop({ required: true })
     body: string;
 
-    @Prop({type:mongoose.Schema.Types.ObjectId, ref: 'Experience' })
-    experience: Experience
+    @Prop({ required: true })
+    rating: number;
 
-
-    @Prop({type:mongoose.Schema.Types.ObjectId, ref: 'User' })
-    user: User
-
-    @Prop({required : true , min : 0 , max: 10 })
-    stars : number
+    @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Experience' })
+    experience: Experience;
 }
-
 
 export const RatingSchema = SchemaFactory.createForClass(Rating);

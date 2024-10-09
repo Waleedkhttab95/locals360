@@ -14,9 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any, done: VerifiedCallback) {
-    console.log(payload)
- 
+  async validate(payload: any, done: VerifiedCallback) { 
 
     return done(null, payload);
   }

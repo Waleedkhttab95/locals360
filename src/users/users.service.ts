@@ -17,6 +17,8 @@ import { UtilitiesService } from 'src/utilities/utilities.service';
 import { UserToken } from './entities/user.token.entity';
 import { Wishlist } from './entities/user.wishlist.entity';
 import { ObjectId } from 'mongodb';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { ReservationService } from 'src/reservation/reservation.service';
 
 @Injectable()
 export class UsersService {
@@ -50,6 +52,7 @@ export class UsersService {
     });
     await user.save();
 
+
     // create a new empty wishlist
 
     await this.createWishlist(user._id);
@@ -72,9 +75,9 @@ export class UsersService {
 
   async login(authDto: AuthDto) {
     const { email, password } = authDto;
-    email.toLowerCase();
+    
     const user = await this.userRepository.findOne({
-      email: email,
+      email: email.toLocaleLowerCase(),
     });
 
     if (!user || !user.password) {
@@ -100,6 +103,13 @@ export class UsersService {
     });
     if (!result) throw new NotFoundException('User not found');
     return result.id;
+  }
+
+  async getUserById(id: string) {
+    const user = await this.userRepository.findById(id)
+    .select('-password -reservations');
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
   // async updateProfileImage(id: string, file: Express.Multer.File) {
@@ -129,10 +139,49 @@ export class UsersService {
   async getMyReservations(userId: string) {
     const user = await this.userRepository
       .findById(userId)
-      .populate('reservations');
+      .populate({
+        path: 'reservations',
+        select: '-user',
+        populate: [
+          {
+            path: 'experience',
+            populate: {
+            path: 'location',
+            populate: {
+              path: 'city',
+            },
+          },
+        },
+        {
+          path: 'guide',
+          select: '-password',
+        },
+        {
+          path: 'location',
+          select: '-_id',
+          populate: {
+            path: 'city',
+            select: '-_id',
+          },
+        }
+        ]
+      });
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.reservations) throw new NotFoundException('You have no reservations');
 
-    return user.reservations;
+    // Filter the reservations to get upcoming reservations and past reservations baseed on the current date  
+    const currentDate = new Date();
+    console.log(user.reservations)
+    const upcomingReservations = user.reservations.filter((reservation: Reservation) => reservation.dateOfExperience > currentDate);
+    const pastReservations = user.reservations.filter((reservation: Reservation) => reservation.dateOfExperience < currentDate);
+
+    return {
+      upcomingReservations,
+      pastReservations,
+    };
   }
+
+
 
   async storeUserMobileToken(userId: string, token: string) {
     const userToken = await this.userToeknRepository.findOne({
@@ -166,23 +215,37 @@ export class UsersService {
   }
 
   async createWishlist(userId: ObjectId) {
-    const wishlist = await this.wishlistRepository.create({
-      user: userId,
-      experienceList: [],
-    });
-    await wishlist.save();
+    try {
+      const wishlist = await this.wishlistRepository.create({
+        user: userId,
+        experienceList: [],
+      });
+      await wishlist.save();
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
   }
   async addToWishlist(experienceId: string, userId: string) {
-    const wishlist = await this.wishlistRepository.findOneAndUpdate(
-      { user: userId },
-      {
-        $push: { experienceList: experienceId },
-      },
-    );
 
-    if (!wishlist) throw new NotFoundException('Wishlist not found ');
+    try{
+      const wishlist = await this.wishlistRepository.findOneAndUpdate(
+        { user: userId },
+        {
+          $push: { experienceList: experienceId },
+        },
+      );
+  
+      if (!wishlist) throw new NotFoundException('Wishlist not found ');
+  
+      return true;
+    } catch(err){
+      console.log(err)
+      return false
+    }
 
-    return true;
   }
 
   async getUserWishlist(userId: string) {
@@ -197,4 +260,6 @@ export class UsersService {
 
     return wishlist;
   }
+
+
 }
